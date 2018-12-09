@@ -1,5 +1,9 @@
+var _ = require('lodash');
 var express = require('express');
 var hbs = require('hbs');
+var bodyParser = require('body-parser');
+var mongo = require('mongodb');
+var mongoose = require('mongoose');
 
 var app = express();
 
@@ -7,6 +11,12 @@ hbs.registerPartials(__dirname + '/views/partials');
 app.use(express.static(__dirname + '/public'));
 app.set('view engine', hbs);
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+mongoose.connect('mongodb://localhost/user-system', { useNewUrlParser: true });
+
+var {User} = require('./models/user');
 
 //CORS
 app.use(function(req, res, next) {
@@ -37,6 +47,20 @@ app.get('/dashboard', function(req, res){
 		pageTitle: 'Dashboard'
 	});
 });
+
+app.post('/register/', function(req, res){
+	var body = _.pick(req.body, ['email', 'password']);
+	var user = new User(body);
+
+	user.save().then(() => {
+		return user.generateAuthToken();
+	}).then((token) => {
+		res.header('x-auth', token).send(user);
+	}).catch((e) => {
+		res.status(400).send(e);
+	});
+});
+
 
 // Set Port
 app.set('port', (process.env.PORT || 3000));
