@@ -17,6 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 mongoose.connect('mongodb://localhost/user-system', { useNewUrlParser: true });
 
 var {User} = require('./models/user');
+var {authenticate} = require('./middleware/authenticate');
 
 //CORS
 app.use(function(req, res, next) {
@@ -42,11 +43,37 @@ app.get('/login', function(req, res){
 	});
 });
 
-app.get('/dashboard', function(req, res){
+app.get('/dashboard', authenticate, function(req, res){
 	res.render('dashboard.hbs', {
 		pageTitle: 'Dashboard'
 	});
 });
+
+// app.get('/todos', authenticate, (req, res) => {
+// 	Todo.find({
+// 		_creator: req.user._id
+// 	}).then((todos) => {
+// 		res.send({todos});
+// 	}, (e) => {
+// 		res.status(400).send(e);
+// 	});
+// });
+
+
+app.post('/login', (req, res) => {
+	var body = _.pick(req.body, ['email', 'password']);
+
+	User.findByCredentials(body.email, body.password).then((user) => {
+		user.generateAuthToken().then((token) => {
+			console.log('Sign in success!');
+			res.header('x-auth', token).send(user);
+		});
+	}).catch((e) => {
+		console.log('Sign in error');
+		res.status(400).send();
+	});
+});
+
 
 app.post('/register/', function(req, res){
 	var body = _.pick(req.body, ['email', 'password']);
