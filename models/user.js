@@ -33,23 +33,23 @@ var UserSchema = new mongoose.Schema({
 	}]
 });
 
-UserSchema.statics.findByToken = function(token) {
-	var User = this;
-	var decoded;
+// UserSchema.statics.findByToken = function(token) {
+// 	var User = this;
+// 	var decoded;
 
-	try{
-		// decoded = jwt.verify(token, process.env.JWT_SECRET);
-		decoded = jwt.verify(token, '123123');
-	}catch (e) {
-		return Promise.reject();
-	}
+// 	try{
+// 		// decoded = jwt.verify(token, process.env.JWT_SECRET);
+// 		decoded = jwt.verify(token, '123123');
+// 	}catch (e) {
+// 		return Promise.reject();
+// 	}
 
-	return User.findOne({
-		'_id': decoded._id,
-		'tokens.token': token,
-		'tokens.access': 'auth'
-	})
-};
+// 	return User.findOne({
+// 		'_id': decoded._id,
+// 		'tokens.token': token,
+// 		'tokens.access': 'auth'
+// 	})
+// };
 
 UserSchema.statics.findByCredentials = function (email, password) {
 	var User = this;
@@ -71,18 +71,18 @@ UserSchema.statics.findByCredentials = function (email, password) {
 	});
 };
 
-UserSchema.methods.generateAuthToken = function(){
-	var user = this;
-	var access = 'auth';
-	// var token = jwt.sign({_id: user._id.toHexString(), access}, process.env.JWT_SECRET).toString();
-	var token = jwt.sign({_id: user._id.toHexString(), access}, '123123').toString();
+// UserSchema.methods.generateAuthToken = function(){
+// 	var user = this;
+// 	var access = 'auth';
+// 	// var token = jwt.sign({_id: user._id.toHexString(), access}, process.env.JWT_SECRET).toString();
+// 	var token = jwt.sign({_id: user._id.toHexString(), access}, '123123').toString();
 
-	user.tokens = user.tokens.concat([{access, token}]);
+// 	user.tokens = user.tokens.concat([{access, token}]);
 
-	return user.save().then(() => {
-		return token;
-	})
-};
+// 	return user.save().then(() => {
+// 		return token;
+// 	})
+// };
 
 
 UserSchema.pre('save', function (next) {
