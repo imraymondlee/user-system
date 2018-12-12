@@ -24,7 +24,6 @@ app.use(session({
 mongoose.connect('mongodb://localhost/user-system', { useNewUrlParser: true });
 
 var {User} = require('./models/user');
-// var {authenticate} = require('./middleware/authenticate');
 
 //CORS
 app.use(function(req, res, next) {
@@ -32,6 +31,12 @@ app.use(function(req, res, next) {
     res.header('Access-Control-Allow-Methods','GET,PUT,POST,DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
+});
+
+// Global Vars
+app.use(function (req, res, next) {
+	res.locals.user = req.session.user || null;
+	next();
 });
 
 app.get('/', function(req, res){
@@ -50,12 +55,6 @@ app.get('/login', function(req, res){
 	});
 });
 
-// app.get('/dashboard', authenticate, function(req, res){
-// 	res.render('dashboard.hbs', {
-// 		pageTitle: 'Dashboard'
-// 	});
-// });
-
 app.get('/dashboard', function(req, res){
 	if(!req.session.user){
 		return res.status(401).send();
@@ -69,16 +68,6 @@ app.get('/dashboard', function(req, res){
 app.post('/login', (req, res) => {
 	var body = _.pick(req.body, ['email', 'password']);
 
-	// User.findByCredentials(body.email, body.password).then((user) => {
-	// 	user.generateAuthToken().then((token) => {
-	// 		console.log('Sign in success!');
-	// 		res.header('x-auth', token).send(user);
-	// 	});
-	// }).catch((e) => {
-	// 	console.log('Sign in error');
-	// 	res.status(400).send();
-	// });
-
 	User.findByCredentials(body.email, body.password).then((user) => {
 		req.session.user = user;
 		console.log('Sign in success!');
@@ -90,24 +79,29 @@ app.post('/login', (req, res) => {
 });
 
 
-app.post('/register/', function(req, res){
+app.post('/register', function(req, res){
 	var body = _.pick(req.body, ['email', 'password']);
 	var user = new User(body);
-
-	// user.save().then(() => {
-	// 	return user.generateAuthToken();
-	// }).then((token) => {
-	// 	res.header('x-auth', token).send(user);
-	// }).catch((e) => {
-	// 	res.status(400).send(e);
-	// });
 
 	user.save().then(() => {
 		req.session.user = user;
 		console.log('Registration success!');
-		res.status(200).send();
+		res.status(200).send(user);
+
 	}).catch((e) => {
 		res.status(400).send(e);
+	});
+});
+
+
+app.delete('/logout', function(req, res){
+	req.session.destroy(function(err) {
+	  if(err){
+	  	console.log(err);
+	  }else{
+	  	console.log('Logged out');
+	  	res.status(200).send();
+	  }
 	});
 });
 
