@@ -14,7 +14,14 @@
      		<div class="grid-x grid-padding-x">
         		<div class="large-12 cell">
 					
-        			<p>Welcome to the Dashboard</p>
+        			<p>Welcome {{email}} to the Dashboard</p>
+        			<p>Current Users:
+        				<ul>
+        				{{#each users}}
+        				<li>{{this.email}}</li>
+        				{{/each}}
+	        			</ul>
+        			</p>
 
 				</div>
 			</div>
